@@ -1,11 +1,15 @@
 const express = require('express');
 const expressEjsLayouts = require('express-ejs-layouts');
-const { routes } = require('./router');
+const { routes } = require('./app/router');
 const mongoose = require('mongoose');
-const { nameSpaceRoutes } = require('./router/namespace');
-const { roomRoutes } = require('./router/rooms');
+const { nameSpaceRoutes } = require('./app/router/namespace');
+const { roomRoutes } = require('./app/router/rooms');
+const { initialSocket } = require('./app/socket.io/socket.io.server');
+const http = require('http');
+const { socketHandler } = require('./app/socket.io');
 
 const app = express();
+const server = http.createServer(app);
 const port = 3000;
 
 app.use(express.urlencoded())
@@ -21,7 +25,8 @@ const connectDB = () => {
 };
 
 connectDB();
-
+const io = initialSocket(server);
+socketHandler(io)
 
 app.use(expressEjsLayouts);
 app.use(express.static('public'))
@@ -36,6 +41,6 @@ app.use("/namespaces", nameSpaceRoutes)
 app.use("/room", roomRoutes)
 
 
-app.listen(port, () => {
+server.listen(port, () => {
     console.log(`server is runnig on port ${port}`);
 })
